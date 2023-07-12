@@ -1,0 +1,7 @@
+pip install Flask
+pip install pymongo
+pip install python-dotenv
+
+flask --app main run
+
+pip install -U py-mon
