@@ -22,7 +22,39 @@ try:
 except Exception as e:
     print(e)
 
-@app.route("/", methods=['POST', 'GET'])
-def hello_world():
+mydb = client["test"]
+
+@app.route("/login", methods=['POST'])
+def login():
     data = request.json
-    return jsonify(data)
+    if len(str(data.get('email'))) > 0:
+        mycol = mydb["clients"]
+        fd =  mycol.find_one({ "email": str(data.get('email'))})
+        if fd:
+            if data.get('password')==fd['password']:
+                return str(fd)
+            else:
+                return "Error Pass"
+        else:
+            return "Error User"
+    return "Error"
+
+@app.route("/signin", methods=['POST'])
+def sigin():
+    data = request.json
+    if len(str(data.get('email'))) != 0 or len(str(data.get('username'))) != 0 or len(str(data.get('password'))) != 0:
+        mycol = mydb["clients"]
+        fd =  mycol.find_one({ "email": str(data.get('email'))})
+
+        if fd:
+            return "user already exists"
+
+        data = {
+            "username": str(data.get('username')),
+            "email": str(data.get('email')),
+            "password": str(data.get('password'))
+        }
+
+        x = mycol.insert_one(data)
+        return "Inserted"
+    return "Error"
