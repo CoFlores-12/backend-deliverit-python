@@ -5,7 +5,9 @@ from dotenv import load_dotenv
 import os
 import json
 from bson import json_util
+from bson.json_util import dumps
 from bson.objectid import ObjectId
+from flask_cors import CORS, cross_origin
 
 load_dotenv()
 
@@ -14,6 +16,12 @@ PW = os.getenv("PW")
 
 app = Flask(__name__)
 app.run(port=3000,debug=True)
+CORS(app)
+cors = CORS(app, resource={
+    r"/*":{
+        "origins":"*"
+    }
+})
 
 uri = "mongodb+srv://"+USR+":"+PW+"@deliverit.elvsi2t.mongodb.net/?retryWrites=true&w=majority"
 
@@ -29,13 +37,15 @@ mydb = client["test"]
 
 @app.route("/login", methods=['POST'])
 def login():
-    data = request.json
-    if len(str(data.get('email'))) > 0:
+    if request.form['email']:
         mycol = mydb["clients"]
-        fd =  mycol.find_one({ "email": str(data.get('email'))})
+        fd =  mycol.find_one({ "email": str(request.form['email'])})
         if fd:
-            if data.get('password')==fd['password']:
-                return str(fd)
+            if str(request.form['password'])==fd['password']:
+                return {
+                    "username":fd['username'],
+                    "_id":str(fd['_id'])
+                }
             else:
                 return "Error Pass"
         else:
@@ -44,22 +54,24 @@ def login():
 
 @app.route("/signin", methods=['POST'])
 def sigin():
-    data = request.json
-    if len(str(data.get('email'))) != 0 or len(str(data.get('username'))) != 0 or len(str(data.get('password'))) != 0:
+    if request.form['email'] or request.form['username'] or request.form['password']:
         mycol = mydb["clients"]
-        fd =  mycol.find_one({ "email": str(data.get('email'))})
+        fd =  mycol.find_one({ "email": str(request.form['email'])})
 
         if fd:
             return "user already exists"
 
         data = {
-            "username": str(data.get('username')),
-            "email": str(data.get('email')),
-            "password": str(data.get('password'))
+            "username": str(request.form['username']),
+            "email": str(request.form['email']),
+            "password": str(request.form['password'])
         }
 
         x = mycol.insert_one(data)
-        return "Inserted"
+        return {
+                    "username":str(request.form['username']),
+                    "_id":str(x.inserted_id )
+                }
     return "Error"
 
 @app.route("/categories", methods=['GET'])

@@ -1,6 +1,7 @@
 pip install Flask
 pip install pymongo
 pip install python-dotenv
+pip install flask_cors
 
 flask --app main run
 
