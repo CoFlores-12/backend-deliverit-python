@@ -103,3 +103,38 @@ def storeID(idStore):
         fd =  mycol.find({"_id": ObjectId(idStore)})
         return json.loads(json_util.dumps(fd))
     return "Error"
+
+@app.route("/CreateOrder", methods=['POST'])
+def CreateOrder():
+    if request.form['idClient']:
+        mycol = mydb["orders"]
+        fd =  mycol.find_one({ "_id": str(request.form['idClient'])})
+
+        if fd:
+            return "user already exists"
+
+        data = {
+            id: 1,
+            status:  'Received',
+            service: request.form['service'],
+            total: request.form['total'],
+            date: request.form['date'],
+            payment: request.form['payment'],
+            client:    {
+                id: fd['_id'],
+                name: fd['username'],
+                email: fd['email']
+            },
+            dealer:     {
+                id: null,
+                name: null,
+                email: null,
+                tel: null
+            },
+            products: request.form['products'],
+            locations: request.form['location']
+        }
+
+        x = mycol.insert_one(data)
+        return x
+    return "Error"
